@@ -14,9 +14,6 @@ indent_size = 4
 [*.go]
 indent_style = tab
 
-[*.{css,scss}]
-indent_size = 2
-
 [{Makefile,**.mk,Makefile.in}]
 indent_style = tab
 

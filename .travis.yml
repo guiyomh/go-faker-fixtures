@@ -1,0 +1,33 @@
+language: go
+
+matrix:
+  fast_finish: true
+  include:
+  - go: 1.11.x
+  - go: 1.12.x
+
+env:
+  - GO111MODULE=on
+
+git:
+  depth: 10
+
+before_install:
+  - make setup
+  - export PATH="${GOPATH}/bin:${GOROOT}/bin:${PATH}"
+
+install:
+  - make tools
+
+go_import_path: github.com/guiyomh/charlatan
+
+script:
+  - make vet
+  - make lint
+  - make fmt
+  - make spelling
+  - make test
+  - make test-cover-html
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

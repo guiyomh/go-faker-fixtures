@@ -1,0 +1,11 @@
+phone:
+    meta:
+        connection:
+            name: 'defaut$lt'
+            truncate: false
+    phone_{bob,harry,george}:
+        number: '<Phone()>'
+        user_id: '@user_<Current()>'
+    phone_2_{bob,george}:
+        number: '<Phone()>'
+        user_id: '@user_<Current()>'

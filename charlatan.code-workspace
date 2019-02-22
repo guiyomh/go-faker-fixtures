@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"licenser.license": "GPLv3",
+		"licenser.projectName": "Charlatan",
+		"licenser.author": "Guillaume CAMUS"
+	}
+}
