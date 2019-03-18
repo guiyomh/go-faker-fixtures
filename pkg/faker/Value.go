@@ -6,21 +6,22 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/guiyomh/charlatan/pkg/faker/contracts"
 )
 
-// Value is a helper to generate fake data
-type Value struct {
+type value struct {
 }
 
 var regexFaker, _ = regexp.Compile(`(?i)<(?P<method>[^\(]+)\((?P<args>[^\)]+)?\)>`)
 
 // NewValue is a factory to create a generator of value
-func NewValue() *Value {
-	return &Value{}
+func NewValue() contracts.Faker {
+	return &value{}
 }
 
 // Generate is a method that use faker to generate ramdom data
-func (g *Value) Generate(data string) interface{} {
+func (g *value) Generate(data string) interface{} {
 	fakesData := regexFaker.FindStringSubmatch(data)
 	if len(fakesData) <= 0 {
 		return data
@@ -37,7 +38,7 @@ func (g *Value) Generate(data string) interface{} {
 	return g.convert(result)
 }
 
-func (g *Value) convert(val reflect.Value) interface{} {
+func (g *value) convert(val reflect.Value) interface{} {
 	switch val.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return strconv.FormatInt(val.Int(), 10)
@@ -52,7 +53,7 @@ func (g *Value) convert(val reflect.Value) interface{} {
 	}
 }
 
-func (g *Value) invoke(name string, args []string) (reflect.Value, error) {
+func (g *value) invoke(name string, args []string) (reflect.Value, error) {
 
 	// method := reflect.ValueOf(gofakeit).MethodByName(name)
 	method := reflect.ValueOf(funcs[name])

@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"os"
 
+	internalcontract "github.com/guiyomh/charlatan/internal/contracts"
+	treecontracts "github.com/guiyomh/charlatan/pkg/tree/contracts"
+
 	"github.com/azer/logger"
-	"github.com/guiyomh/charlatan/internal/app/model"
 	"github.com/guiyomh/charlatan/internal/pkg/db"
 	"github.com/guiyomh/charlatan/internal/pkg/generator"
 	"github.com/guiyomh/charlatan/internal/pkg/reader"
@@ -42,35 +44,35 @@ var loadCmd = &cobra.Command{
 			panic(err)
 		}
 
-		generator := generator.NewGenerator()
-		rows, err := generator.GenerateRecords(data)
+		//generator := generator.NewGenerator()
+		rows, err := generator.NewGenerator().GenerateRecords(data)
 		if err != nil {
 			log.Error(err.Error())
 			panic(err)
 		}
-		rowTree := model.NewTree()
-		for _, row := range rows {
-			rowTree.Add(row)
+		tree, err := generator.BuildTree(rows)
+		if err != nil {
+			log.Error(err.Error())
+			panic(err)
 		}
 		dbManagerFactory := db.DbManagerFactory{}
 		manager, err := dbManagerFactory.NewDbManager("mysql", DbHost, DbPort, DbUser, DbPass)
 		if err != nil {
 			panic(err)
 		}
-		//dataSource := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8", DbUser, DbPass, DbHost, DbPort, DbName)
-		//sqlGenerator := db.NewSqlGenerator("mysql", dataSource)
-		rowTree.Walk(func(key string, value *model.Row) {
-			if value.HasDependencies() {
-				for field, relation := range value.DependencyReference {
-					target := rowTree.Find(relation.RecordName)
-					if relation.FieldName != "" {
-						value.Fields[field] = target.Value.Fields[relation.RecordName]
+		tree.Walk(func(node treecontracts.Node) {
+			original, _ := node.(internalcontract.Row)
+			if original.HasDependencies() {
+				for field, relation := range original.DependencyReference() {
+					target, _ := tree.Find(relation.RecordName()).(internalcontract.Row)
+					if relation.FieldName() != "" {
+						original.Fields()[field] = target.Fields()[relation.RecordName()]
 					} else {
-						value.Fields[field] = target.Value.Pk
+						original.Fields()[field] = target.Pk
 					}
 				}
 			}
-			sql, params, err := manager.BuildInsertSQL("fixtures", value.TableName, value.Fields)
+			sql, params, err := manager.BuildInsertSQL(original.Schema(), original.TableName(), original.Fields())
 			if err != nil {
 				panic(err)
 			}
@@ -82,7 +84,7 @@ var loadCmd = &cobra.Command{
 			if err != nil {
 				panic(err)
 			}
-			value.Pk = lastInsertID
+			original.SetPk(lastInsertID)
 		}, true)
 
 		log.Info(fmt.Sprintf("Nb rows : %d", len(rows)))

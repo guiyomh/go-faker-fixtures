@@ -1,4 +1,4 @@
-package db
+package drivers
 
 import (
 	"database/sql"
@@ -6,19 +6,25 @@ import (
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/guiyomh/charlatan/internal/pkg/db/contracts"
+	"github.com/guiyomh/charlatan/internal/pkg/db/utils"
 )
 
 //MySQL Driver for MySQL and MariaDB
-type MySQL struct {
+type mySQL struct {
 	connection *sql.DB
 }
 
-func (m *MySQL) escape(str string) string {
+func NewMySQL(conn *sql.DB) contracts.DbManager {
+	return &mySQL{connection: conn}
+}
+
+func (m *mySQL) escape(str string) string {
 	return fmt.Sprintf("`%s`", str)
 }
 
 //BuildInsertSQL Convert a record map to a insert string
-func (m *MySQL) BuildInsertSQL(schema string, table string, record map[string]interface{}) (sqlStr string, values []interface{}, err error) {
+func (m *mySQL) BuildInsertSQL(schema string, table string, record map[string]interface{}) (sqlStr string, values []interface{}, err error) {
 	var (
 		sqlColumns []string
 		sqlValues  []string
@@ -41,11 +47,11 @@ func (m *MySQL) BuildInsertSQL(schema string, table string, record map[string]in
 				continue
 			}
 
-			if t, err := tryStrToDate(v); err == nil {
+			if t, err := utils.TryStrToDate(v); err == nil {
 				value = t
 			}
 		case []interface{}, map[interface{}]interface{}:
-			value = recursiveToJSON(v)
+			value = utils.RecursiveToJSON(v)
 		}
 
 		sqlValues = append(sqlValues, "?")
@@ -64,7 +70,7 @@ func (m *MySQL) BuildInsertSQL(schema string, table string, record map[string]in
 	return
 }
 
-func (m *MySQL) Exec(sqlStr string, params []interface{}) (sql.Result, error) {
+func (m *mySQL) Exec(sqlStr string, params []interface{}) (sql.Result, error) {
 	tx, err := m.connection.Begin()
 	if err != nil {
 		return nil, err
@@ -77,7 +83,7 @@ func (m *MySQL) Exec(sqlStr string, params []interface{}) (sql.Result, error) {
 	result, err := tx.Exec(sqlStr, params...)
 
 	if err != nil {
-		return nil, &InsertError{
+		return nil, &contracts.InsertError{
 			Err:    err,
 			SQL:    sqlStr,
 			Params: params,
@@ -95,7 +101,7 @@ func (m *MySQL) Exec(sqlStr string, params []interface{}) (sql.Result, error) {
 	return result, nil
 }
 
-func (m *MySQL) TruncateTable(schema string, table string) (sql.Result, error) {
+func (m *mySQL) TruncateTable(schema string, table string) (sql.Result, error) {
 	sqlStr := fmt.Sprintf(
 		"TRUNCATE TABLE %s.%s",
 		m.escape(schema),

@@ -4,6 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
+	"github.com/guiyomh/charlatan/internal/pkg/db/contracts"
+	"github.com/guiyomh/charlatan/internal/pkg/db/drivers"
 )
 
 var (
@@ -17,29 +20,6 @@ var (
 	ErrKeyIsNotString = errors.New("Record map key is not string")
 )
 
-// InsertError will be returned if any error happens on database while
-// inserting the record
-type InsertError struct {
-	Err    error
-	SQL    string
-	Params []interface{}
-}
-
-func (e *InsertError) Error() string {
-	return fmt.Sprintf(
-		"charlatan: error inserting record: %v, sql: %s, params: %v",
-		e.Err,
-		e.SQL,
-		e.Params,
-	)
-}
-
-type DbManager interface {
-	BuildInsertSQL(schema string, table string, fields map[string]interface{}) (string, []interface{}, error)
-	TruncateTable(schema string, table string) (sql.Result, error)
-	Exec(sqlStr string, params []interface{}) (sql.Result, error)
-}
-
 type DbManagerFactory struct{}
 
 func (dm DbManagerFactory) NewDbManager(
@@ -48,7 +28,7 @@ func (dm DbManagerFactory) NewDbManager(
 	port int16,
 	username string,
 	password string,
-) (DbManager, error) {
+) (contracts.DbManager, error) {
 	dataSource := fmt.Sprintf("%s:%s@tcp(%s:%d)/?charset=utf8", username, password, host, port)
 	myDb, err := sql.Open("mysql", dataSource)
 	if err != nil {
@@ -56,7 +36,7 @@ func (dm DbManagerFactory) NewDbManager(
 	}
 	switch driverName {
 	case "mysql":
-		return &MySQL{connection: myDb}, nil
+		return drivers.NewMySQL(myDb), nil
 	}
 	return nil, ErrDbDriverIsNotSupported
 }

@@ -1,4 +1,4 @@
-package db
+package utils
 
 import (
 	"testing"
@@ -26,7 +26,7 @@ func Test_tryStrToDate(t *testing.T) {
 		{"test 6", args{s: "foo bar"}, time.Time{}, true},
 	}
 	for _, tt := range tests {
-		got, err := tryStrToDate(tt.args.s)
+		got, err := TryStrToDate(tt.args.s)
 		assert.Equal(t, tt.wantErr, err != nil)
 		assert.Equal(t, tt.want, got)
 	}

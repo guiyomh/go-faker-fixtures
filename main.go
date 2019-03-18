@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	Name    = "go-faker-fixtures"
+	Name    = "Charlatan"
 	Author  = "Guillaume Camus"
 	Version = "0.0.1"
 )

@@ -5,8 +5,10 @@ import (
 	"strings"
 
 	"github.com/guiyomh/charlatan/internal/app/model"
+	internalcontracts "github.com/guiyomh/charlatan/internal/contracts"
 	mids "github.com/guiyomh/charlatan/internal/pkg/generator/middleware"
 	"github.com/guiyomh/charlatan/pkg/faker"
+	fakercontracts "github.com/guiyomh/charlatan/pkg/faker/contracts"
 	"github.com/guiyomh/charlatan/pkg/ranger"
 )
 
@@ -16,7 +18,7 @@ var (
 )
 
 type Generator struct {
-	faker *faker.Value
+	faker fakercontracts.Faker
 }
 
 // NewGenerator factory to create a Generator
@@ -27,7 +29,7 @@ func NewGenerator() *Generator {
 }
 
 // GenerateRecords build records from fixture
-func (g Generator) GenerateRecords(data model.FixtureTables) ([]*model.Row, error) {
+func (g Generator) GenerateRecords(data model.FixtureTables) ([]internalcontracts.Row, error) {
 	tpls, recordSets := g.classifyData(data)
 	rows, err := g.buildRecord(tpls, recordSets)
 	if err != nil {
@@ -36,9 +38,9 @@ func (g Generator) GenerateRecords(data model.FixtureTables) ([]*model.Row, erro
 	return rows, nil
 }
 
-func (g Generator) classifyData(tbls model.FixtureTables) (map[string]*model.Template, []*model.ObjectSet) {
+func (g Generator) classifyData(tbls model.FixtureTables) (map[string]*model.Template, []internalcontracts.RowSet) {
 	tpls := make(map[string]*model.Template)
-	objs := make([]*model.ObjectSet, 0)
+	objs := make([]internalcontracts.RowSet, 0)
 	for tableName, records := range tbls {
 		for recordName, fields := range records {
 
@@ -53,9 +55,12 @@ func (g Generator) classifyData(tbls model.FixtureTables) (map[string]*model.Tem
 			} else {
 				objectSet := model.NewObjectSet(tableName, name, fields, hasExtend, rangeRef, parent)
 				if rangeRef != "" {
-					objectSet.RangeRowReference = myRanger.BuildRecordName(name, rangeRef)
+					for _, set := range myRanger.BuildRecordName(name, rangeRef) {
+						objectSet.AddRangeRowReference(set)
+					}
 				} else {
-					objectSet.RangeRowReference = []string{objectSet.Name}
+					objectSet.AddRangeRowReference(objectSet.Name())
+
 				}
 				objs = append(objs, objectSet)
 			}
@@ -64,11 +69,11 @@ func (g Generator) classifyData(tbls model.FixtureTables) (map[string]*model.Tem
 	return tpls, objs
 }
 
-func (g Generator) buildRecord(templates map[string]*model.Template, recordSets []*model.ObjectSet) ([]*model.Row, error) {
-	rows := make([]*model.Row, 0)
+func (g Generator) buildRecord(templates map[string]*model.Template, recordSets []internalcontracts.RowSet) ([]internalcontracts.Row, error) {
+	rows := make([]internalcontracts.Row, 0)
 	for _, objectSet := range recordSets {
 
-		if objectSet.HasExtend {
+		if objectSet.HasExtend() {
 			objectSet = g.completeField(templates, objectSet)
 		}
 		rowSets := g.createRows(objectSet)
@@ -77,29 +82,29 @@ func (g Generator) buildRecord(templates map[string]*model.Template, recordSets 
 	return rows, nil
 }
 
-func (g Generator) completeField(templates map[string]*model.Template, set *model.ObjectSet) *model.ObjectSet {
-	for fieldName, value := range templates[set.ParentName].Fields {
-		set.Fields[fieldName] = value
+func (g Generator) completeField(templates map[string]*model.Template, set internalcontracts.RowSet) internalcontracts.RowSet {
+	for fieldName, value := range templates[set.ParentName()].Fields {
+		set.AddField(fieldName, value)
 	}
 	return set
 }
 
-func (g Generator) createRows(objectSet *model.ObjectSet) []*model.Row {
-	rows := make([]*model.Row, 0)
-	for _, rowReference := range objectSet.RangeRowReference {
+func (g Generator) createRows(objectSet internalcontracts.RowSet) []internalcontracts.Row {
+	rows := make([]internalcontracts.Row, 0)
+	for _, rowReference := range objectSet.RangeRowReference() {
 		row := g.createRow(rowReference, objectSet)
 		rows = append(rows, row)
 	}
 	return rows
 }
 
-func (g Generator) createRow(rowReference string, objectSet *model.ObjectSet) *model.Row {
+func (g Generator) createRow(rowReference string, objectSet internalcontracts.RowSet) internalcontracts.Row {
 
-	current := strings.Replace(rowReference, objectSet.Name, "", 1)
-	row := model.NewRow(rowReference, objectSet.TableName)
-	for field, value := range objectSet.Fields {
+	current := strings.Replace(rowReference, objectSet.Name(), "", 1)
+	row := model.NewRow(rowReference, objectSet.TableName())
+	for field, value := range objectSet.Fields() {
 		v := g.generateValue(current, value)
-		row.Fields[field] = v
+		row.AddField(field, v)
 		g.getDependency(field, v, row)
 	}
 	return row
@@ -112,7 +117,7 @@ func (g Generator) applyMiddleWare(value interface{}, mids ...middleware) interf
 	return value
 }
 
-func (g Generator) getDependency(field string, value interface{}, row *model.Row) {
+func (g Generator) getDependency(field string, value interface{}, row internalcontracts.Row) {
 	if _, ok := value.(string); !ok {
 		return
 	}
@@ -120,7 +125,7 @@ func (g Generator) getDependency(field string, value interface{}, row *model.Row
 	if err != nil {
 		return
 	}
-	row.DependencyReference[field] = relation
+	row.AddDependency(field, relation)
 }
 
 func (g Generator) generateValue(current string, value interface{}) interface{} {

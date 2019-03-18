@@ -51,7 +51,7 @@ func TestValue_convert(t *testing.T) {
 		{"test 4", args{val: reflect.ValueOf(testStruct{val1: 16, val2: "foo"})}, testStruct{val1: 16, val2: "foo"}},
 		{"test 5", args{val: reflect.ValueOf(func() string { return "foo" })}, "nothing"},
 	}
-	g := &Value{}
+	g := &value{}
 	for _, tt := range tests {
 		got := g.convert(tt.args.val)
 		assert.Equal(t, tt.want, got)

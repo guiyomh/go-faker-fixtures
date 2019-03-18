@@ -9,6 +9,7 @@ setup:
 	mkdir -p ${GOPATH}/bin
 	go get -u golang.org/x/lint/golint
 	go get -u github.com/kardianos/govendor
+	go get -u github.com/client9/misspell/cmd/misspell
 	go get github.com/mattn/goveralls
 
 ALL = \
@@ -48,6 +49,20 @@ fmt:
 
 vet:
 	go vet $(ALL_PACKAGES)
+
+.PHONY: misspell-check
+misspell-check:
+	@hash misspell > /dev/null 2>&1; if [ $$? -ne 0 ]; then \
+		go get -u github.com/client9/misspell/cmd/misspell; \
+	fi
+	misspell -error $(ALL_PACKAGES)
+
+.PHONY: misspell
+misspell:
+	@hash misspell > /dev/null 2>&1; if [ $$? -ne 0 ]; then \
+		go get -u github.com/client9/misspell/cmd/misspell; \
+	fi
+	misspell -w $(ALL_PACKAGES)
 
 test-cover-html:
 	@echo "mode: count" > coverage-all.out

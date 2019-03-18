@@ -3,10 +3,10 @@ package middleware
 import (
 	"fmt"
 
-	"github.com/guiyomh/charlatan/pkg/faker"
+	"github.com/guiyomh/charlatan/pkg/faker/contracts"
 )
 
-func FakerMiddleware(faker *faker.Value) func(interface{}) interface{} {
+func FakerMiddleware(faker contracts.Faker) func(interface{}) interface{} {
 	return func(value interface{}) interface{} {
 		typeof := fmt.Sprintf("%T", value)
 		if typeof == "string" {
