@@ -9,6 +9,21 @@ type RowSet struct {
 	mock.Mock
 }
 
+// AddDependencyReference provides a mock function with given fields: reference
+func (_m *RowSet) AddDependencyReference(reference string) {
+	_m.Called(reference)
+}
+
+// AddField provides a mock function with given fields: fieldName, value
+func (_m *RowSet) AddField(fieldName string, value interface{}) {
+	_m.Called(fieldName, value)
+}
+
+// AddRangeRowReference provides a mock function with given fields: rangeRef
+func (_m *RowSet) AddRangeRowReference(rangeRef string) {
+	_m.Called(rangeRef)
+}
+
 // DependencyReference provides a mock function with given fields:
 func (_m *RowSet) DependencyReference() []string {
 	ret := _m.Called()
