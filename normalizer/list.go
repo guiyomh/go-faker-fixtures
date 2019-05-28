@@ -23,12 +23,12 @@ import (
 	"strings"
 
 	"github.com/guiyomh/charlatan/contract"
-	"github.com/guiyomh/charlatan/models"
 )
 
 var LIST_REGEX = regexp.MustCompile(`(?i)(?P<refbase>[\p{L}\._\/]+)\{(?P<list>[\p{L}\._\/]+(?:,\s?[^,\s]+)*)\}`)
 
 type List struct {
+	chainabler
 }
 
 func (l *List) CanDenormalize(ref string) bool {
@@ -58,24 +58,16 @@ func (l *List) BuildIds(matches map[string]string) ([]string, error) {
 
 func (l *List) Denormalize(ref string, data map[string]interface{}) (contract.Bager, error) {
 	bag := make(FixtureBag, 0)
-	matches := LIST_REGEX.FindStringSubmatch(ref)
-	if matches == nil {
-		return bag, fmt.Errorf("'%v' could not match the pattern %v", ref, LIST_REGEX.String())
-	}
-	result := make(map[string]string, len(matches)-1)
-	limit := len(matches)
-	for i, name := range LIST_REGEX.SubexpNames() {
-		if i != 0 && i < limit && len(name) > 0 && len(matches[i]) > 0 {
-			result[name] = matches[i]
-		}
-	}
-	ids, err := l.BuildIds(result)
+	matches, err := l.buildMatches(ref, LIST_REGEX)
 	if err != nil {
 		return bag, err
 	}
-	var f contract.Fixture
-	for _, id := range ids {
-		f = models.NewFixture(id)
+	ids, err := l.BuildIds(matches)
+	if err != nil {
+		return bag, err
+	}
+	fixtures := l.buildFixture(ids, data)
+	for _, f := range fixtures {
 		bag.Add(f)
 	}
 	return bag, nil

@@ -9,6 +9,22 @@ type MockFixture struct {
 	mock.Mock
 }
 
+// Fields provides a mock function with given fields:
+func (_m *MockFixture) Fields() map[string]Value {
+	ret := _m.Called()
+
+	var r0 map[string]Value
+	if rf, ok := ret.Get(0).(func() map[string]Value); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]Value)
+		}
+	}
+
+	return r0
+}
+
 // Id provides a mock function with given fields:
 func (_m *MockFixture) Id() string {
 	ret := _m.Called()

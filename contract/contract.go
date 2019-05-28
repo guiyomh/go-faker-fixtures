@@ -29,6 +29,7 @@ type Value interface {
 // Fixture is a value struct representing an raw to be built.
 type Fixture interface {
 	Identifier
+	Fields() map[string]Value
 }
 
 // Denormalizer denormalizes the parsed data into a comprehensive collection of fixtures.

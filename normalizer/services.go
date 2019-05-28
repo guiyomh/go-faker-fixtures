@@ -18,6 +18,8 @@
 package normalizer
 
 import (
+	"fmt"
+
 	"github.com/guiyomh/charlatan/contract"
 	"github.com/sarulabs/di"
 )
@@ -43,11 +45,17 @@ var Services []di.Def = []di.Def{
 		Name:  "app.normalizer.registry",
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-
-			return NewRegistry([]contract.Chainabler{
-				&Range{},
-				&List{},
-			}), nil
+			normalizer := make([]contract.Chainabler, 2)
+			if n, ok := ctn.Get("app.normalizer.range").(contract.Chainabler); ok {
+				normalizer = append(normalizer, n)
+			}
+			if n, ok := ctn.Get("app.normalizer.list").(contract.Chainabler); ok {
+				normalizer = append(normalizer, n)
+			}
+			if len(normalizer) == 0 {
+				return nil, fmt.Errorf("The service app.normalizer.registry needs Chainabler to works")
+			}
+			return NewRegistry(normalizer), nil
 		},
 	},
 }
