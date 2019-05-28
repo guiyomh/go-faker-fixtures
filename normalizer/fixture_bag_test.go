@@ -86,3 +86,21 @@ func TestFixtureBagMerge(t *testing.T) {
 	assert.Equal(t, nb+nb2, len(bag3.(FixtureBag)))
 	assert.NoError(t, err)
 }
+
+func TestFixtureBag_Remove(t *testing.T) {
+	t.Parallel()
+	fixtures := []contract.Fixture{}
+
+	var bag contract.Bager = make(FixtureBag, 0)
+	nb := 5
+	for i := 1; i <= nb; i++ {
+		f := new(contract.MockFixture)
+		f.On("Id").Return(fmt.Sprintf("fix_%d", i))
+		fixtures = append(fixtures, f)
+		bag = bag.Add(f)
+	}
+	assert.Equal(t, nb, len(bag.(FixtureBag)))
+	bag2 := bag.Remove("fix_3")
+	assert.Equal(t, nb, len(bag.(FixtureBag)))
+	assert.Equal(t, nb-1, len(bag2.(FixtureBag)))
+}

@@ -25,6 +25,22 @@ func (_m *MockBager) Add(f Fixture) Bager {
 	return r0
 }
 
+// Clone provides a mock function with given fields:
+func (_m *MockBager) Clone() Bager {
+	ret := _m.Called()
+
+	var r0 Bager
+	if rf, ok := ret.Get(0).(func() Bager); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(Bager)
+		}
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: id
 func (_m *MockBager) Get(id string) (Fixture, error) {
 	ret := _m.Called(id)
@@ -83,6 +99,22 @@ func (_m *MockBager) MergeWith(newFixture Bager) (Bager, error) {
 	}
 
 	return r0, r1
+}
+
+// Remove provides a mock function with given fields: key
+func (_m *MockBager) Remove(key string) Bager {
+	ret := _m.Called(key)
+
+	var r0 Bager
+	if rf, ok := ret.Get(0).(func(string) Bager); ok {
+		r0 = rf(key)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(Bager)
+		}
+	}
+
+	return r0
 }
 
 // Without provides a mock function with given fields: fixture

@@ -25,7 +25,7 @@ import (
 	"github.com/guiyomh/charlatan/contract"
 )
 
-var RANGE_REGEX = regexp.MustCompile(`(?i)(?P<refbase>[\p{L}\._\/]+)\{(?P<from>[0-9]+)(?:\.{2})(?P<to>[0-9]+)((,\s?(?P<step>[0-9]+))?)\}`)
+var RANGE_REGEX = regexp.MustCompile(`(?i)(?P<refbase>[\p{L}\._\/\d]+)\{(?P<from>[0-9]+)(?:\.{2})(?P<to>[0-9]+)((,\s?(?P<step>[0-9]+))?)\}.*`)
 
 type Range struct {
 	chainabler
@@ -76,8 +76,7 @@ func getInt(key string, matches map[string]string) (int, error) {
 	return strconv.Atoi(v)
 }
 
-func (r *Range) Denormalize(ref string, data map[string]interface{}) (contract.Bager, error) {
-	bag := make(FixtureBag, 0)
+func (r *Range) Denormalize(bag contract.Bager, ref string, data map[string]interface{}) (contract.Bager, error) {
 	matches, err := r.buildMatches(ref, RANGE_REGEX)
 	if err != nil {
 		return bag, err

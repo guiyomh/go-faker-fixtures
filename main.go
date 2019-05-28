@@ -22,7 +22,6 @@ import (
 	"os"
 
 	"github.com/davecgh/go-spew/spew"
-
 	"github.com/guiyomh/charlatan/contract"
 	"github.com/guiyomh/charlatan/loader"
 	"github.com/guiyomh/charlatan/normalizer"
@@ -96,6 +95,7 @@ func main() {
 
 	fmt.Printf("struct Data : %v\n", d)
 	spew.Dump(d)
+
 	var bag contract.Bager
 	for table, data := range *d {
 		tableBag, err := denorm.Denormalize(table, data)
@@ -112,7 +112,7 @@ func main() {
 		}
 	}
 	fmt.Println("------------------")
-	spew.Dump(bag)
+	fmt.Println(bag)
 }
 
 var services []di.Def = []di.Def{

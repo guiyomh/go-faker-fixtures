@@ -35,36 +35,33 @@ func NewRegistry(denorms []contract.Chainabler) *Registry {
 }
 
 func (r *Registry) Denormalize(table string, data map[string]map[string]interface{}) (contract.Bager, error) {
-	var bag contract.Bager = make(FixtureBag, 0)
+	bag := CreateBag(data)
 	log.WithFields(log.Fields{
 		"registry": true,
 		"table":    table,
 	}).Debug("Registry start denormalize")
+
+	var hasFoundDenorm bool
 	for setname, fields := range data {
-		log.WithFields(log.Fields{
-			"registry": true,
-			"set":      setname,
-		}).Debug("Searching normalizer for the set")
+		hasFoundDenorm = false
+		log.WithField("set", setname).Debugf("Searching normalizer for '%s'", setname)
 		for _, denorm := range r.normalizers {
 			ok := denorm.CanDenormalize(setname)
 			if ok {
+				hasFoundDenorm = true
 				log.WithFields(log.Fields{
-					"registry":   true,
 					"setname":    setname,
 					"normalizer": fmt.Sprintf("%T", denorm),
-				}).Debug("Find a normalizer")
-				bagSet, err := denorm.Denormalize(setname, fields)
-				bag, err = bag.MergeWith(bagSet)
+				}).Debugf("Apply the normalizer '%T' to '%s'", denorm, setname)
+				bag, err := denorm.Denormalize(bag, setname, fields)
 				if err != nil {
 					return bag, err
 				}
 				break
 			}
-			log.WithFields(log.Fields{
-				"registry":   true,
-				"setname":    setname,
-				"normalizer": fmt.Sprintf("%T", denorm),
-			}).Warn("No Found a normalizer for ", setname)
+		}
+		if hasFoundDenorm == false {
+			log.WithField("set", setname).Warnf("No normalizer was found for '%s'", setname)
 		}
 	}
 	log.WithFields(log.Fields{

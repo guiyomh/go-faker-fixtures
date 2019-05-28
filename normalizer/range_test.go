@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/guiyomh/charlatan/contract"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -115,7 +116,8 @@ func TestRange_Denormalize(t *testing.T) {
 		"username": "<Username()>",
 		"password": "<Password()>",
 	}
-	bag, err := r.Denormalize(ref, fields)
+	var bag contract.Bager = make(FixtureBag, 0)
+	bag, err := r.Denormalize(bag, ref, fields)
 	assert.NoError(t, err)
 	assert.Len(t, bag.(FixtureBag), 3)
 	assert.True(t, bag.Has("user_1"))

@@ -9,13 +9,13 @@ type MockNormalizer struct {
 	mock.Mock
 }
 
-// Denormalize provides a mock function with given fields: ref, data
-func (_m *MockNormalizer) Denormalize(ref string, data map[string]interface{}) (Bager, error) {
-	ret := _m.Called(ref, data)
+// Denormalize provides a mock function with given fields: bag, ref, data
+func (_m *MockNormalizer) Denormalize(bag Bager, ref string, data map[string]interface{}) (Bager, error) {
+	ret := _m.Called(bag, ref, data)
 
 	var r0 Bager
-	if rf, ok := ret.Get(0).(func(string, map[string]interface{}) Bager); ok {
-		r0 = rf(ref, data)
+	if rf, ok := ret.Get(0).(func(Bager, string, map[string]interface{}) Bager); ok {
+		r0 = rf(bag, ref, data)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(Bager)
@@ -23,8 +23,8 @@ func (_m *MockNormalizer) Denormalize(ref string, data map[string]interface{}) (
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, map[string]interface{}) error); ok {
-		r1 = rf(ref, data)
+	if rf, ok := ret.Get(1).(func(Bager, string, map[string]interface{}) error); ok {
+		r1 = rf(bag, ref, data)
 	} else {
 		r1 = ret.Error(1)
 	}

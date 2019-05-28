@@ -25,7 +25,7 @@ import (
 	"github.com/guiyomh/charlatan/contract"
 )
 
-var LIST_REGEX = regexp.MustCompile(`(?i)(?P<refbase>[\p{L}\._\/]+)\{(?P<list>[\p{L}\._\/]+(?:,\s?[^,\s]+)*)\}`)
+var LIST_REGEX = regexp.MustCompile(`(?i)(?P<refbase>[\p{L}\._\/\d]+)\{(?P<list>[\p{L}\._\/]+(?:,\s?[^,\s]+)*)\}.*`)
 
 type List struct {
 	chainabler
@@ -56,8 +56,7 @@ func (l *List) BuildIds(matches map[string]string) ([]string, error) {
 	return ids, nil
 }
 
-func (l *List) Denormalize(ref string, data map[string]interface{}) (contract.Bager, error) {
-	bag := make(FixtureBag, 0)
+func (l *List) Denormalize(bag contract.Bager, ref string, data map[string]interface{}) (contract.Bager, error) {
 	matches, err := l.buildMatches(ref, LIST_REGEX)
 	if err != nil {
 		return bag, err
@@ -70,5 +69,6 @@ func (l *List) Denormalize(ref string, data map[string]interface{}) (contract.Ba
 	for _, f := range fixtures {
 		bag.Add(f)
 	}
+	bag.Remove(ref)
 	return bag, nil
 }

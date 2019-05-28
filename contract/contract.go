@@ -34,7 +34,7 @@ type Fixture interface {
 
 // Denormalizer denormalizes the parsed data into a comprehensive collection of fixtures.
 type Normalizer interface {
-	Denormalize(ref string, data map[string]interface{}) (Bager, error)
+	Denormalize(bag Bager, ref string, data map[string]interface{}) (Bager, error)
 }
 
 type Register interface {
@@ -54,7 +54,9 @@ type Collectioner interface {
 type Bager interface {
 	Add(f Fixture) Bager
 	Without(fixture Fixture) Bager
+	Remove(key string) Bager
 	MergeWith(newFixture Bager) (Bager, error)
+	Clone() Bager
 	Has(id string) bool
 	Get(id string) (Fixture, error)
 }

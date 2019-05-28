@@ -29,7 +29,6 @@ var Services []di.Def = []di.Def{
 		Name:  "app.normalizer.list",
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-
 			return &List{}, nil
 		},
 	},
@@ -37,7 +36,6 @@ var Services []di.Def = []di.Def{
 		Name:  "app.normalizer.range",
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-
 			return &Range{}, nil
 		},
 	},
@@ -45,17 +43,18 @@ var Services []di.Def = []di.Def{
 		Name:  "app.normalizer.registry",
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-			normalizer := make([]contract.Chainabler, 2)
+			normalizers := make([]contract.Chainabler, 0)
 			if n, ok := ctn.Get("app.normalizer.range").(contract.Chainabler); ok {
-				normalizer = append(normalizer, n)
+				normalizers = append(normalizers, n)
 			}
 			if n, ok := ctn.Get("app.normalizer.list").(contract.Chainabler); ok {
-				normalizer = append(normalizer, n)
+				normalizers = append(normalizers, n)
 			}
-			if len(normalizer) == 0 {
+			if len(normalizers) == 0 {
 				return nil, fmt.Errorf("The service app.normalizer.registry needs Chainabler to works")
 			}
-			return NewRegistry(normalizer), nil
+			registry := NewRegistry(normalizers)
+			return registry, nil
 		},
 	},
 }
